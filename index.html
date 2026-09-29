@@ -1,2 +1,32 @@
 <!DOCTYPE html>
-<!-- SEE ARTIFACT FILE - placeholder will be replaced -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chatstars — Chat Trial</title>
+<style>html,body{height:100%;margin:0;background:#0d0d0d;color:#f5f5f5;font-family:Inter,system-ui,sans-serif}#boot{display:flex;align-items:center;justify-content:center;height:100%;font-size:14px;color:#999}</style>
+</head>
+<body>
+<div id="boot">Loading Chat Trial…</div>
+<script>
+(async function () {
+  const src = 'https://raw.githubusercontent.com/Mrkeit95/chatstars-trial/8eb5f3768a3e805f4aa41374498f04def9c265ad/index.html';
+  const res = await fetch(src, { cache: 'no-store' });
+  if (!res.ok) throw new Error('Could not fetch trial source (' + res.status + ')');
+  let html = await res.text();
+  if (html.indexOf('async function initTrial') === -1) throw new Error('Unexpected source file');
+  html = html.replace("?select=*&_t='+Date.now()", "?select=*");
+  html = html.replace(
+    "if(!Array.isArray(cr)||!cr.length){document.getElementById('entryErr').textContent='No creator personas configured.';",
+    "if(!Array.isArray(cr)||!cr.length){const why=(!Array.isArray(cr)&&cr&&(cr.message||cr.error))?('Could not load personas: '+(cr.message||cr.error)):'No creator personas configured.';document.getElementById('entryErr').textContent=why;"
+  );
+  document.open();
+  document.write(html);
+  document.close();
+})().catch(function (err) {
+  var el = document.getElementById('boot');
+  if (el) el.textContent = 'Failed to load trial: ' + err.message;
+});
+</script>
+</body>
+</html>
