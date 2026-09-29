@@ -15,10 +15,9 @@
   if (!res.ok) throw new Error('Could not fetch trial source (' + res.status + ')');
   let html = await res.text();
   if (html.indexOf('async function initTrial') === -1) throw new Error('Unexpected source file');
-  html = html.replace("?select=*&_t='+Date.now()", "?select=*");
   html = html.replace(
-    "if(!Array.isArray(cr)||!cr.length){document.getElementById('entryErr').textContent='No creator personas configured.';",
-    "if(!Array.isArray(cr)||!cr.length){const why=(!Array.isArray(cr)&&cr&&(cr.message||cr.error))?('Could not load personas: '+(cr.message||cr.error)):'No creator personas configured.';document.getElementById('entryErr').textContent=why;"
+    "SB+'/creators?select=*&_t='+Date.now()",
+    "SB+'/creators?select=*'"
   );
   document.open();
   document.write(html);
