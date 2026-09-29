@@ -542,7 +542,7 @@ async function initTrial(){
   const btn=document.getElementById('startBtn');btn.disabled=true;btn.textContent='Setting up trial...';
   S.candidate={name:n,email:e,telegram:tg,country:co};
   try{
-    const r=await fetch(SB+'/creators?select=*',{headers:{'apikey':SBK,'Authorization':'Bearer '+SBK}});
+    const r=await fetch(SB+'/creators?select=*&_t='+Date.now(),{cache:'no-store',headers:{'apikey':SBK,'Authorization':'Bearer '+SBK}});
     const cr=await r.json();
     if(!Array.isArray(cr)||!cr.length){document.getElementById('entryErr').textContent='No creator personas configured.';btn.disabled=false;btn.textContent='Start Chat Trial';return}
     S.creator=cr[Math.floor(Math.random()*cr.length)];
@@ -630,7 +630,7 @@ async function fanMsg(fid,first){
   await new Promise(r=>setTimeout(r,first?2500:2000+R(0,3000)));
   if(S.ended)return;f.typing=false;
   let reply='';
-  try{const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({creator:S.creator,fan_persona:f.persona,messages:f.msgs.map(m=>({role:m.r,content:m.c})),is_first:first})});const d=await r.json();reply=d.message||''}catch(e){}
+  try{const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({creator:S.creator,fan_persona:f.persona,messages:f.msgs.map(m=>({role:m.r,content:m.c})),is_first:first})});const d=await r.json();reply=d.reply||''}catch(e){}
   if(!reply){const fb=first?["yo just subbed, whats good","hey just found ur page. damn 🔥","just subscribed, u fine as hell","sup, been following u on ig and finally subbed"]
     :["haha bet, what kind of stuff do u send?","damn ok im interested 👀","lol u wild, i like it","that sounds fire 🔥 how much","wait fr?? send it then","hmm thats kinda pricey","lol aight u got me","do u do custom stuff?"];reply=fb[R(0,fb.length-1)]}
   f.msgs.push({r:'fan',c:reply,t:Date.now()});f.unread++;f.lastMsg=reply;f.replied=false;f.waitSince=Date.now();
@@ -1088,5 +1088,3 @@ async function endTrial(){
 </script>
 </body>
 </html>
-<!-- deploy -->
-<!-- deploy -->

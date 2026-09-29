@@ -1,0 +1,7 @@
+{
+  "rewrites": [
+    { "source": "/api/tf/:path*", "destination": "/api/tf" },
+    { "source": "/api/sb/:path*", "destination": "/api/sb" },
+    { "source": "/api/send-reminder", "destination": "/api/send-reminder" }
+  ]
+}
