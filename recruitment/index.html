@@ -623,18 +623,17 @@ async function acceptInvite(){
 async function renderTrialSummary(){
   const el=document.getElementById('dTrials');if(!el)return;
   try{
-    const r=await fetch(SB_URL+'/trial_sessions?select=overall_grade,status,created_at',{cache:'no-store',headers:SB_HEADERS});
+    const r=await fetch(SB_URL+'/trial_sessions?select=score_overall,pass,status,started_at',{cache:'no-store',headers:SB_HEADERS});
     const d=await r.json();const rows=Array.isArray(d)?d:[];
     const total=rows.length;
-    const graded=rows.filter(x=>x.overall_grade).length;
-    const gm={A:4,B:3,C:2,D:1,F:0};
-    const gv=rows.map(x=>x.overall_grade?gm[String(x.overall_grade).charAt(0).toUpperCase()]:null).filter(v=>v!=null);
-    const avg=gv.length?['F','D','C','B','A'][Math.round(gv.reduce((a,b)=>a+b,0)/gv.length)]:'—';
-    const wk=Date.now()-7*864e5;const recent=rows.filter(x=>x.created_at&&new Date(x.created_at).getTime()>=wk).length;
+    const graded=rows.filter(x=>x.score_overall!=null);
+    const passed=graded.filter(x=>x.pass).length;
+    const avg=graded.length?Math.round(graded.reduce((a,b)=>a+(b.score_overall||0),0)/graded.length*10)/10:0;
+    const wk=Date.now()-7*864e5;const recent=rows.filter(x=>x.started_at&&new Date(x.started_at).getTime()>=wk).length;
     el.innerHTML=`<div class="sc"><div class="sl">Total Trials</div><div class="sv">${total}</div><div class="ss">${recent} in last 7 days</div></div>`+
-      `<div class="sc"><div class="sl">Graded</div><div class="sv g">${graded}</div><div class="ss">${total-graded} awaiting</div></div>`+
-      `<div class="sc"><div class="sl">Avg Grade</div><div class="sv">${avg}</div><div class="ss">Across graded trials</div></div>`+
-      `<div class="sc"><div class="sl">Completion</div><div class="sv">${total?Math.round(graded/total*100):0}%</div><div class="ss">Trials graded</div></div>`;
+      `<div class="sc"><div class="sl">Graded</div><div class="sv g">${graded.length}</div><div class="ss">${total-graded.length} awaiting</div></div>`+
+      `<div class="sc"><div class="sl">Pass Rate</div><div class="sv" style="color:var(--green)">${graded.length?Math.round(passed/graded.length*100):0}%</div><div class="ss">${passed} passed</div></div>`+
+      `<div class="sc"><div class="sl">Avg Score</div><div class="sv ${avg>=7?'g':''}">${avg?avg+'/10':'—'}</div><div class="ss">Across graded trials</div></div>`;
   }catch(e){el.innerHTML='';}
 }
 
@@ -1268,7 +1267,7 @@ let trialFilter='all';
 async function loadTrials(){
   const btn=document.getElementById('refreshTrialsBtn');btn.textContent='Loading...';btn.disabled=true;
   try{
-    const sessions=await sbGet('trial_sessions','select=*&order=created_at.desc&limit=200');
+    const sessions=await sbGet('trial_sessions','select=*&order=started_at.desc&limit=200');
     trialData=Array.isArray(sessions)?sessions:[];
     renderTrials();
   }catch(e){
@@ -1326,7 +1325,7 @@ function renderTrials(){
     const score=t.score_overall?t.score_overall+'/10':'—';
     const scoreColor=t.score_overall>=7?'var(--green)':t.score_overall?'var(--red)':'var(--text-dim)';
     const status=t.pass?'<span class="badge b-g">Passed</span>':t.score_overall?'<span class="badge b-r">Failed</span>':t.status==='active'?'<span class="badge b-b">Active</span>':t.status==='completed'?'<span class="badge b-o">Pending</span>':'<span class="badge b-x">'+t.status+'</span>';
-    const date=t.created_at?new Date(t.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'—';
+    const date=t.started_at?new Date(t.started_at).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'—';
     const persona=(t.fan_persona||'').replace(/_/g,' ');
     const avgReply=t.avg_reply_ms?Math.round(t.avg_reply_ms/1000)+'s':'—';
     return`<tr onclick="viewTrial('${t.id}')" style="cursor:pointer">
@@ -1384,7 +1383,7 @@ async function viewTrial(id){
   document.getElementById('trialModalScores').innerHTML=scores;
   // Load messages
   try{
-    const msgs=await sbGet('trial_messages','session_id=eq.'+id+'&order=created_at.asc');
+    const msgs=await sbGet('trial_messages','session_id=eq.'+id+'&order=sent_at.asc');
     const chatHtml=Array.isArray(msgs)&&msgs.length?`
       <div style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px">Chat Transcript (${msgs.length} messages)</div>
       <div style="max-height:400px;overflow-y:auto;padding:12px;background:var(--bg);border-radius:10px;border:1px solid var(--border)">
